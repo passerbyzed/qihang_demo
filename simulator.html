@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>启航 · 模拟消息输入器</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+       color:#2C3E50;font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:20px}
+
+  .container{background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.15);
+             max-width:680px;width:100%;padding:32px;max-height:90vh;overflow-y:auto}
+
+  h1{font-size:24px;font-weight:700;margin-bottom:8px;color:#17453E}
+  .subtitle{font-size:13px;color:#8A9296;margin-bottom:24px;line-height:1.6}
+
+  .form-group{margin-bottom:18px}
+  .form-group label{display:block;font-size:13px;font-weight:700;color:#3C464B;margin-bottom:6px}
+  .form-group label span{color:#A5351F;margin-left:3px}
+
+  input, textarea, select{width:100%;font-family:inherit;font-size:14px;padding:10px 12px;
+       border:1px solid #DDE1DC;border-radius:6px;background:#FAFAF7;color:#20292E;
+       transition:border-color .2s}
+  input:focus, textarea:focus, select:focus{outline:none;border-color:#17453E;background:#fff}
+  textarea{resize:vertical;line-height:1.6}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  .btn{font-family:inherit;font-size:14px;font-weight:700;padding:12px 24px;border-radius:6px;
+       cursor:pointer;border:none;transition:.2s;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary{background:#17453E;color:#fff}
+  .btn-primary:hover{background:#0F332D;transform:translateY(-1px);box-shadow:0 4px 12px rgba(23,69,62,.3)}
+  .btn-secondary{background:#E4E7E3;color:#3C464B}
+  .btn-secondary:hover{background:#D8DDD8}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+  .btn-row{display:flex;gap:10px;margin-top:24px}
+
+  .templates{margin-top:20px;padding-top:20px;border-top:1px solid #E4E7E3}
+  .templates h3{font-size:14px;color:#8A9296;margin-bottom:10px}
+  .template-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:8px}
+  .template-btn{font-size:12px;padding:8px 10px;border:1px solid #DDE1DC;background:#fff;
+       color:#5F686D;border-radius:5px;cursor:pointer;transition:.2s;text-align:left;font-family:inherit}
+  .template-btn:hover{border-color:#17453E;background:#F7F8F5}
+
+  .result{margin-top:24px;padding:16px;background:#EFF4EF;border:1px solid#CFE0D2;border-radius:6px;
+          font-size:13px;line-height:1.6;display:none}
+  .result.show{display:block}
+  .result.error{background:#FDF5F3;border-color:#EFCFC7;color:#A5351F}
+  .result strong{color:#1F6B3E;font-weight:700}
+  .result.error strong{color:#A5351F}
+
+  .spinner{border:3px solid #E4E7E3;border-top-color:#17453E;border-radius:50%;
+           width:16px;height:16px;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .hint{font-size:12px;color:#A6ADB1;margin-top:5px}
+
+  @media(max-width:600px){
+    .row{grid-template-columns:1fr}
+    .container{padding:20px}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎯 模拟消息输入器</h1>
+  <div class="subtitle">
+    填写下方表单，点击"发送到原型"，消息会调用真实 AI 分析后自动加入原型队列。<br>
+    用于课堂演示时，可以模拟不同场景的家长咨询。
+  </div>
+
+  <form id="msgForm">
+    <div class="row">
+      <div class="form-group">
+        <label>平台来源<span>*</span></label>
+        <select id="platform" required>
+          <option value="微信">微信</option>
+          <option value="小红书">小红书</option>
+          <option value="抖音">抖音</option>
+          <option value="知乎">知乎</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>家长称呼<span>*</span></label>
+        <input type="text" id="who" placeholder="例：家长·李女士" value="家长·张女士" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>咨询内容<span>*</span></label>
+      <textarea id="text" rows="5" placeholder="输入家长的咨询消息..." required></textarea>
+      <div class="hint">尝试输入不同类型的咨询，AI 会自动识别意图和风险</div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn btn-primary" id="submitBtn">
+        <span id="btnText">📤 发送到原型</span>
+        <div class="spinner" id="spinner" style="display:none"></div>
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 清空表单</button>
+    </div>
+  </form>
+
+  <div class="templates">
+    <h3>📋 快速模板（点击填充）</h3>
+    <div class="template-grid">
+      <button type="button" class="template-btn" onclick="fillTemplate(0)">🚨 自伤危机</button>
+      <button type="button" class="template-btn" onclick="fillTemplate(1)">💰 问价格</button>
+      <button type="button" class="template-btn" onclick="fillTemplate(2)">😡 投诉退费</button>
+      <button type="button" class="template-btn" onclick="fillTemplate(3)">📚 问课程</button>
+      <button type="button" class="template-btn" onclick="fillTemplate(4)">📍 问地址</button>
+      <button type="button" class="template-btn" onclick="fillTemplate(5)">⚕️ 医疗越界</button>
+    </div>
+  </div>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:5000';
+
+const TEMPLATES = [
+  { text: '孩子初二，最近天天锁门不出来，说不想活了……你们有办法吗', who: '家长·李女士', platform: '微信' },
+  { text: '初二数学一对一怎么收费？想周末带孩子去试听一下', who: '家长·王先生', platform: '小红书' },
+  { text: '上次买的课老师换了三个，能不能退？不退我就去投诉', who: '家长·匿名', platform: '抖音' },
+  { text: '孩子五年级，注意力不集中，你们有专注力课吗', who: '家长·张女士', platform: '微信' },
+  { text: '你们在杭州有校区吗', who: '家长·陈先生', platform: '小红书' },
+  { text: '我孩子是不是多动症？要不要吃药？你们老师懂这个吗', who: '家长·刘女士', platform: '抖音' }
+];
+
+function fillTemplate(index) {
+  const t = TEMPLATES[index];
+  document.getElementById('text').value = t.text;
+  document.getElementById('who').value = t.who;
+  document.getElementById('platform').value = t.platform;
+  showResult('已填充模板 ' + (index + 1), false);
+}
+
+function resetForm() {
+  document.getElementById('msgForm').reset();
+  document.getElementById('result').classList.remove('show');
+}
+
+function showResult(msg, isError = false) {
+  const el = document.getElementById('result');
+  el.innerHTML = (isError ? '<strong>❌ 错误</strong><br>' : '<strong>✅ 成功</strong><br>') + msg;
+  el.className = 'result show' + (isError ? ' error' : '');
+}
+
+function setLoading(loading) {
+  const btn = document.getElementById('submitBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('btnText');
+
+  btn.disabled = loading;
+  spinner.style.display = loading ? 'block' : 'none';
+  btnText.textContent = loading ? '正在分析...' : '📤 发送到原型';
+}
+
+document.getElementById('msgForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const text = document.getElementById('text').value.trim();
+  const who = document.getElementById('who').value.trim();
+  const platform = document.getElementById('platform').value;
+
+  if (!text || !who) {
+    showResult('请填写完整信息', true);
+    return;
+  }
+
+  setLoading(true);
+  document.getElementById('result').classList.remove('show');
+
+  try {
+    // 1. 调用后端分析接口
+    const response = await fetch(`${API_BASE}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, platform, who })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || '分析失败');
+    }
+
+    const analysis = await response.json();
+
+    // 2. 构造消息对象
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' +
+                    now.getMinutes().toString().padStart(2, '0');
+
+    const message = {
+      id: 'M-' + Date.now(),
+      plat: platform,
+      time: timeStr,
+      who: who,
+      text: text,
+      risk: analysis.risk,
+      heat: analysis.heat,
+      intent: analysis.intent,
+      basis: analysis.basis,
+      advice: analysis.advice,
+      owner: analysis.owner,
+      first: {
+        t: analysis.first_response,
+        src: analysis.kb_source,
+        at: timeStr
+      },
+      more: [],
+      kb: analysis.kb_items,
+      // 前端状态字段
+      status: 'pending',
+      aiRounds: 0,
+      aiLog: [{
+        t: analysis.first_response,
+        src: analysis.kb_source,
+        at: timeStr
+      }],
+      assigned: null,
+      record: '',
+      startedAt: null,
+      timeout: false,
+      draft: ''
+    };
+
+    // 3. 通过 localStorage 传递给原型（或 postMessage，如果原型在 iframe）
+    let messages = [];
+    try {
+      messages = JSON.parse(localStorage.getItem('qihang_simulator_messages') || '[]');
+    } catch (e) {}
+
+    messages.push(message);
+    localStorage.setItem('qihang_simulator_messages', JSON.stringify(messages));
+
+    // 4. 打开原型（如果未打开）
+    const demoWindow = window.open('pm02-prototype-demo.html', 'qihang_demo');
+    if (demoWindow) {
+      // 等待 500ms 让原型加载，然后触发刷新
+      setTimeout(() => {
+        demoWindow.postMessage({ type: 'NEW_MESSAGE', message }, '*');
+      }, 500);
+    }
+
+    showResult(`消息已发送！<br>
+      <strong>风险:</strong> ${analysis.risk} 级
+      <strong>意图:</strong> ${analysis.intent}
+      <strong>热度:</strong> ${analysis.heat}<br>
+      <strong>首响:</strong> ${analysis.first_response.substring(0, 40)}...`);
+
+    // 清空表单
+    document.getElementById('text').value = '';
+
+  } catch (error) {
+    showResult('发送失败：' + error.message + '<br><br>请确认后端服务已启动（python app.py）', true);
+  } finally {
+    setLoading(false);
+  }
+});
+</script>
+</body>
+</html>

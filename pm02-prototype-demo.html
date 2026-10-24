@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>启航 · 夜间私信首响 · 可交互原型 v1</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#EDEFEA;color:#20292E;font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+       -webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+  .topbar{height:44px;background:#20292E;color:#fff;display:flex;align-items:center;padding:0 16px;flex:0 0 44px}
+  .topbar .brand{font-size:13px;font-weight:700;letter-spacing:.5px}
+  .topbar .brand i{font-style:normal;color:#8FBFB0;font-weight:400;margin-left:8px;font-size:11.5px}
+  .topbar .sp{flex:1}
+  .topbar .stat{font-size:12px;color:#B9C2BE;margin-right:16px}
+  .topbar .stat b{color:#fff;font-size:14px}
+  .topbar .stat.danger b{color:#FF8A6E}
+  .topbar .stat.green b{color:#8FBFB0}
+  .topbar .tbt{border:1px solid #4A5459;color:#C9D1CD;font-size:11.5px;padding:5px 11px;border-radius:3px;
+       cursor:pointer;margin-left:8px;background:transparent;font-family:inherit}
+  .topbar .tbt:hover{background:#2C363B;color:#fff}
+
+  .wrap{flex:1;display:grid;grid-template-columns:326px 1fr 400px;gap:14px;padding:14px;min-height:0}
+
+  .panel{background:#fff;border:1px solid #DDE1DC;border-radius:6px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .ph{padding:10px 13px;border-bottom:1px solid #E4E7E3;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+  .ph .t{font-size:12.5px;font-weight:700;letter-spacing:.5px}
+  .ph .t i{font-style:normal;color:#A5351F;font-family:Georgia,serif;margin-right:6px;font-size:14px}
+  .ph .n{font-size:11px;color:#8A9296}
+  .pb{flex:1;overflow-y:auto;padding:9px}
+  .pb::-webkit-scrollbar{width:7px} .pb::-webkit-scrollbar-thumb{background:#D8DDD8;border-radius:4px}
+
+  /* 队列 */
+  .filt{display:flex;gap:5px;padding:8px 9px 0;flex-wrap:wrap;flex:0 0 auto}
+  .f{border:1px solid #DDE1DC;background:#fff;border-radius:11px;font-size:11px;padding:3px 9px;cursor:pointer;color:#5F686D;font-family:inherit}
+  .f.on{background:#17453E;border-color:#17453E;color:#fff}
+  .card{border:1px solid #E4E7E3;border-radius:5px;padding:8px 9px;margin-bottom:7px;cursor:pointer;background:#fff;
+        border-left:3px solid #D8DDD8;transition:background .12s}
+  .card:hover{background:#F7F8F5}
+  .card.on{background:#F1F5F1;border-color:#17453E;border-left-color:#17453E}
+  .card.hi{border-left-color:#A5351F}
+  .card.mid{border-left-color:#C08A2A}
+  .card.done{opacity:.55;cursor:default}
+  .card .r1{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px}
+  .card .r1 .tm{font-weight:400;color:#A6ADB1;font-size:10.5px}
+  .card .r2{font-size:11.5px;color:#6E777C;line-height:1.5;overflow:hidden;display:-webkit-box;
+        -webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .card .r3{margin-top:5px}
+  .tg{display:inline-block;font-size:9.5px;padding:2px 6px;border-radius:2px;margin-right:4px;font-weight:700}
+  .t1{background:#E3F0E6;color:#1F6B3E}.t2{background:#FBEEDA;color:#8F5A12}.t3{background:#FBE4E0;color:#A5351F}
+  .t4{background:#EDEFF2;color:#5F686D}
+  .badge{font-size:9.5px;padding:2px 6px;border-radius:2px;font-weight:700;background:#20292E;color:#fff}
+  .badge.g{background:#17453E}.badge.o{background:#C08A2A}
+
+  /* 主操作 */
+  .centerhead{padding:11px 15px;border-bottom:1px solid #E4E7E3;display:flex;justify-content:space-between;align-items:center}
+  .centerhead .who{font-size:13px;font-weight:700}
+  .centerhead .who span{font-weight:400;color:#8A9296;font-size:11.5px;margin-left:8px}
+  .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#A6ADB1;font-size:12.5px;gap:8px}
+  .empty b{font-size:14px;color:#C6CDC9}
+  .conv{border:1px solid #E4E7E3;border-radius:5px;padding:9px 10px;background:#FAFAF7;margin-bottom:9px}
+  .clb{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:1px;color:#A6ADB1;margin-bottom:8px}
+  .msg{margin-bottom:9px}
+  .msg.in{max-width:88%}
+  .msg.out{max-width:92%;margin-left:auto}
+  .mh{font-size:10.5px;color:#8A9296;margin-bottom:3px;display:flex;gap:6px;align-items:baseline}
+  .msg.out .mh{justify-content:flex-end}
+  .mh b{color:#17453E;font-size:10.5px}
+  .mh span{color:#B3BAB6}
+  .mb{font-size:12.5px;line-height:1.68;padding:8px 11px;border-radius:5px;white-space:pre-line}
+  .msg.in .mb{background:#fff;border:1px solid #E4E7E3;color:#20292E;border-top-left-radius:1px}
+  .msg.out .mb{background:#DFF0E4;border:1px solid #C6E0CD;color:#143A2C;border-top-right-radius:1px}
+  .msrc{font-size:10px;color:#8A9296;margin-top:3px;text-align:right;cursor:pointer;user-select:none}
+  .msrc:hover{color:#17453E}
+  .msrc .ar{color:#17453E;font-weight:700}
+  .msrc .knest{display:none;text-align:left;margin-top:5px;background:#fff;border:1px solid #DDE1DC;
+        border-radius:3px;padding:6px 8px;color:#5F686D;font-size:10.5px;line-height:1.5}
+  .msrc.open .knest{display:block}
+  .sysline{font-size:10.5px;text-align:center;color:#8A9296;background:#F1F3F5;border-radius:3px;
+        padding:5px 8px;margin:6px 0 0;line-height:1.5}
+  .sysline.red{background:#FDF5F3;color:#A5351F;font-weight:700}
+  .sysline.grn{background:#EFF4EF;color:#1F6B3E;font-weight:700}
+  .sysline.gry{background:#F1F3F5;color:#6E777C}
+  .kbtog{border:1px dashed #C6CDC9;border-radius:4px;padding:7px 10px;font-size:11px;color:#5F686D;
+        cursor:pointer;user-select:none;background:#fff}
+  .kbtog:hover{border-color:#17453E;color:#20292E}
+  .kbtog .ar{color:#17453E;font-weight:700;float:right}
+  .kball{display:none;margin-top:8px;border-top:1px solid #E9ECE8;padding-top:7px}
+  .kbtog.open .kball{display:block}
+  .kbi{margin-bottom:7px}
+  .kbi:last-child{margin-bottom:0}
+  .kbn{font-size:10.5px;font-weight:700;color:#17453E;margin-bottom:2px}
+  .kbs{font-size:10.5px;color:#6E777C;line-height:1.55}
+  .tagrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+  .basis{font-size:11.5px;color:#8F5A12;background:#FBEEDA;border-radius:3px;padding:6px 9px;line-height:1.5;margin-bottom:13px}
+  .basis b{color:#7A4E0F}
+  .btnrow{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .btn{font-family:inherit;font-size:12.5px;font-weight:700;padding:9px 16px;border-radius:4px;cursor:pointer;
+       border:1px solid #C6CDC9;background:#fff;color:#3C464B;transition:.12s}
+  .btn:hover{background:#F4F6F2}
+  .btn.pri{background:#17453E;border-color:#17453E;color:#fff}
+  .btn.pri:hover{background:#0F332D}
+  .btn.dan{background:#A5351F;border-color:#A5351F;color:#fff}
+  .btn.dan:hover{background:#8C2B18}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.wide{padding:9px 12px;font-size:12px}
+  .rec{border-top:1px solid #E4E7E3;padding-top:11px}
+  .rec .lb{font-size:10.5px;letter-spacing:1px;color:#A6ADB1;margin-bottom:6px;display:flex;justify-content:space-between}
+  .rec .lb em{font-style:normal;color:#A5351F;font-weight:700}
+  textarea{width:100%;font-family:inherit;font-size:12.5px;line-height:1.6;padding:9px 11px;border:1px solid #DDE1DC;
+       border-radius:4px;resize:vertical;color:#20292E;background:#fff}
+  textarea:focus{outline:none;border-color:#17453E}
+  .hint{font-size:11px;color:#A6ADB1;margin-top:5px}
+
+  /* 结果区 */
+  .res{display:flex;flex-direction:column;gap:9px}
+  .banner{border-radius:5px;padding:10px 12px;font-size:12.5px;font-weight:700;line-height:1.55}
+  .banner.red{background:#FDF5F3;border:1px solid #EFCFC7;color:#A5351F}
+  .banner.grn{background:#EFF4EF;border:1px solid #CFE0D2;color:#1F6B3E}
+  .banner.gry{background:#F7F8F5;border:1px solid #E4E7E3;color:#6E777C;font-weight:400}
+  .field{border:1px solid #E9ECE8;border-radius:5px;padding:9px 11px;background:#FCFCFA}
+  .field .k{font-size:10px;letter-spacing:1px;color:#A6ADB1;margin-bottom:4px}
+  .field .v{font-size:12.5px;color:#20292E;line-height:1.58}
+  .field .v b{color:#17453E}
+  .field.dim .v{color:#A6ADB1}
+  .cdrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .cd{font-family:Georgia,serif;font-size:26px;font-weight:700;letter-spacing:1px;color:#20292E;font-variant-numeric:tabular-nums}
+  .cd.hot{color:#A5351F}
+  .small{font-size:11px;color:#8A9296;line-height:1.5}
+  .divider{height:1px;background:#E4E7E3;margin:2px 0}
+  .kpirow{display:flex;gap:8px}
+  .kpi{flex:1;border:1px solid #E4E7E3;border-radius:5px;padding:8px 10px;background:#fff}
+  .kpi .kk{font-size:10px;color:#A6ADB1;letter-spacing:.8px}
+  .kpi .vv{font-size:19px;font-weight:700;margin-top:2px}
+  .kpi .vv small{font-size:11px;font-weight:400;color:#8A9296}
+
+  .foot{flex:0 0 auto;background:#20292E;color:#B9C2BE;font-size:11px;padding:9px 16px;display:flex;gap:18px;align-items:center}
+  .foot b{color:#EBC98A}
+  .foot .sp{flex:1}
+  .foot .dot{color:#4A5459}
+  .toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%) translateY(12px);background:#20292E;color:#fff;
+     font-size:12.5px;padding:10px 18px;border-radius:4px;opacity:0;pointer-events:none;transition:.22s;z-index:99}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.warn{background:#A5351F}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">启航家庭教育 · 夜间私信<i>企业微信侧边栏 · 可交互原型 v1</i></div>
+  <div class="sp"></div>
+  <div class="stat">夜间待处理 <b id="sTodo">0</b></div>
+  <div class="stat danger">高危 <b id="sHigh">0</b></div>
+  <div class="stat green">今日跟进 <b id="sFollow">0</b></div>
+  <button class="tbt" onclick="resetAll()">重置演示</button>
+</div>
+
+<div class="wrap">
+
+  <!-- 框① 入口 -->
+  <div class="panel">
+    <div class="ph"><div class="t"><i>①</i>入口 · 夜间待处理</div><div class="n" id="qcount">—</div></div>
+    <div class="filt" id="filt"></div>
+    <div class="pb" id="queue"></div>
+  </div>
+
+  <!-- 框② 主操作区 -->
+  <div class="panel">
+    <div class="centerhead">
+      <div class="who" id="cWho">未选择消息</div>
+      <div class="n" style="font-size:11px;color:#A6ADB1" id="cMeta"></div>
+    </div>
+    <div class="pb" id="main">
+      <div class="empty"><b>从左侧队列选一条私信</b><div>夜间私信自动流入，不需要任何人录单</div></div>
+    </div>
+  </div>
+
+  <!-- 框③ 结果区 -->
+  <div class="panel">
+    <div class="ph"><div class="t"><i>③</i>结果区</div><div class="n" id="rHead">待处理</div></div>
+    <div class="pb" id="result">
+      <div class="empty"><b>处置结果会出现在这里</b><div>五个字段：风险级别 / 是否已停 / 谁接手 / 建议动作 / 下一步</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <span><b>教学模拟数据</b>　对话内容、家长姓名、时间均为演示虚构，不对应启航真实客户</span>
+  <span class="dot">·</span>
+  <span><b>v1 边界</b>　只做文字私信 · 只接 3 个平台 · 不报价不代签</span>
+  <span class="sp"></span>
+  <span>AI 继续答上限 2 轮 · 接管后 5 分钟兜底</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 配置 ============ */
+const API_BASE = 'http://localhost:5000';
+
+/* ============ 教学模拟数据（虚构） ============ */
+/* first = AI 3 秒首响；more = 后续轮次（上限 2 轮）；kb = 该回复依据的知识库切片 */
+const SEED = [
+  { id:'M-2471', plat:'微信', time:'21:47', who:'家长 · 李女士',
+    risk:3, heat:3, intent:'求方案',
+    text:'孩子初二，最近天天锁门不出来，说不想活了……你们有办法吗',
+    basis:'命中「不想活」＋ 自伤语义判高风险',
+    advice:'今天上午 10 点前电话回访，先问孩子当下的安全情况，不推课',
+    owner:'组长 小彤',
+    first:{ t:'我是启航的在线助教，看到你的消息了，先不聊课程。\n孩子现在人在你身边吗？如果他有伤害自己的念头，请先别让他一个人待着，把家里的药物和利器收好。\n我这就请老师直接联系你，5 分钟内会有人跟进。',
+            src:'危机应对固定话术 v1.2 · 第 1 条（合规审核通过）', at:'21:47' },
+    more:[],
+    kb:[{n:'危机识别清单 · 自伤类', s:'出现「不想活 / 活着没意思 / 想消失 / 自伤」等表述 → 立即停止课程推荐，转入人工，回复中不给任何评估与建议，只做安全提示与转接。'},
+        {n:'危机应对固定话术 v1.2 · 第 1 条', s:'第一句：表明身份；第二句：确认当下安全；第三句：承诺 5 分钟内人工联系。禁止出现「会好起来的 / 别担心 / 我们课程能帮你」.'}]
+  },
+  { id:'M-2468', plat:'小红书', time:'22:10', who:'家长 · 王先生',
+    risk:1, heat:3, intent:'问价格',
+    text:'初二数学一对一怎么收费？想周末带孩子去试听一下',
+    basis:'问价 + 明确要到店，未命中任何风险词',
+    advice:'标准价 3,980 可直接答，转顾问约试听时段',
+    owner:'客服 小林',
+    first:{ t:'初二数学一对一现在是 3,980 元 / 期（40 课时），周末有免费试听。\n要不要我帮你看看这周六上午的时段？',
+            src:'价格与课时说明 v3.2 · 第 2 条', at:'22:10' },
+    more:[
+      { t:'试听是一节 60 分钟，家长可以旁听；正式上课前会先做一次 30 分钟的学习情况沟通，看看问题出在哪。', src:'试听规则 v2.0 · 第 1 条', at:'22:11' },
+      { t:'这个价位可以分两期付，第二期在开课一个月后。具体我让顾问老师跟你确认，避免我说错。', src:'收费与分期政策 v1.5 · 第 3 条', at:'22:12' }
+    ],
+    kb:[{n:'价格与课时说明 v3.2 · 第 2 条', s:'初二数学一对一：3,980 元 / 期，含 40 课时，每课时 60 分钟；有效期 12 个月。价格由教研与财务双签，AI 不得报折扣价、不得承诺优惠。'},
+        {n:'试听规则 v2.0 · 第 1 条', s:'新客户可享 1 次免费试听（60 分钟），家长可旁听；试听前须完成 30 分钟学习情况沟通。'},
+        {n:'收费与分期政策 v1.5 · 第 3 条', s:'单期金额 ≥ 3,000 元可申请两期分期，首期 60%，第二期于开课后 30 日内支付；具体以顾问确认的合同为准。'}]
+  },
+  { id:'M-2465', plat:'抖音', time:'23:02', who:'家长 · 匿名',
+    risk:2, heat:2, intent:'抱怨/退费',
+    text:'上次买的课老师换了三个，能不能退？不退我就去投诉',
+    basis:'命中「退 / 投诉」，未命中危机词',
+    advice:'只做安抚与转接，不承诺方案；当日转校长',
+    owner:'组长 小彤',
+    first:{ t:'收到，你说的换老师这件事我记下了。\n退费涉及合同条款，我不能在这里给你答复，已经转给我们组长，今天之内会有人直接联系你。',
+            src:'退费与投诉处理 SOP · 第 3 条（不承诺、只转接）', at:'23:02' },
+    more:[
+      { t:'这段时间上了多少课时、剩余金额多少，组长会跟你一起核对清楚，你不需要重复说明一遍。', src:'退费与投诉处理 SOP · 第 4 条', at:'23:03' },
+      { t:'如果今天没联系上你，我会在明天上午 10 点前再提醒组长一次。', src:'退费与投诉处理 SOP · 第 5 条（回执承诺）', at:'23:04' }
+    ],
+    kb:[{n:'退费与投诉处理 SOP · 第 3 条', s:'涉及退费、投诉、曝光、12315、法律途径的对话，AI 只做安抚与转接，不得承诺退费金额、不得解释合同、不得评价老师。'},
+        {n:'退费与投诉处理 SOP · 第 4 条', s:'转接前须记录：订单号、已上课时、家长诉求三要素，避免家长重复陈述。'},
+        {n:'退费与投诉处理 SOP · 第 5 条', s:'AI 须给出明确回执时间（不超过次日 10:00），并写入待办清单。'}]
+  },
+  { id:'M-2460', plat:'微信', time:'00:31', who:'家长 · 张女士',
+    risk:1, heat:2, intent:'问课程',
+    text:'孩子五年级，注意力不集中，你们有专注力课吗',
+    basis:'普通课程咨询，无风险信号',
+    advice:'按 FAQ 原文答课程设置，邀约体验课',
+    owner:'客服 小林',
+    first:{ t:'有的。五年级专注力课每周六上午 9:30–11:00，小班 6 人，12 次一期。\n上课前我们一般先做一次 30 分钟的学习情况沟通，再定要不要上——不是所有「坐不住」都适合上这个课。',
+            src:'课程设置 v4.1 · 专注力课', at:'00:31' },
+    more:[
+      { t:'这个沟通是免费的，线上或到校区都行，你看哪个方便。', src:'课程设置 v4.1 · 试听与沟通', at:'00:32' },
+      { t:'课程是 2,880 元 / 期，含 12 次课和一次阶段测评。', src:'价格与课时说明 v3.2 · 第 5 条', at:'00:33' }
+    ],
+    kb:[{n:'课程设置 v4.1 · 专注力课', s:'专注力课：五年级，每周六 9:30–11:00，6 人小班，12 次 / 期；入学前须完成 30 分钟学习情况沟通。'},
+        {n:'价格与课时说明 v3.2 · 第 5 条', s:'专注力课 2,880 元 / 期，含 12 次课、1 次阶段测评；不含教材费 120 元。'}]
+  },
+  { id:'M-2455', plat:'小红书', time:'01:58', who:'家长 · 陈先生',
+    risk:1, heat:1, intent:'随口问',
+    text:'你们在杭州有校区吗',
+    basis:'纯信息查询',
+    advice:'答校区地址，不主动邀约',
+    owner:'客服 小周',
+    first:{ t:'杭州有 3 个校区：滨江（江南大道 228 号）、城西（文一西路 88 号）、临平（南苑街道 12 号）。\n你在哪个区？我说最近的那个。',
+            src:'校区地址表 v1.8', at:'01:58' },
+    more:[
+      { t:'滨江校区周六全天有试听，城西只有周日上午。', src:'校区排课表 v1.4', at:'01:59' },
+      { t:'需要的话我把滨江校区的定位发你。', src:'校区地址表 v1.8', at:'02:00' }
+    ],
+    kb:[{n:'校区地址表 v1.8', s:'杭州：滨江校区 江南大道 228 号；城西校区 文一西路 88 号；临平校区 南苑街道 12 号。'},
+        {n:'校区排课表 v1.4', s:'滨江：周六全天可试听；城西：周日上午；临平：暂不开放试听。'}]
+  },
+  { id:'M-2449', plat:'抖音', time:'02:20', who:'家长 · 刘女士',
+    risk:2, heat:3, intent:'医疗越界',
+    text:'我孩子是不是多动症？要不要吃药？你们老师懂这个吗',
+    basis:'命中「多动症 / 吃药」医疗越界词',
+    advice:'固定话术拒绝判断 + 立即转人工，建议就医',
+    owner:'组长 小彤',
+    first:{ t:'这个我不能判断——是不是多动症、要不要用药，只有医院的医生能定，我们不做任何评估结论。\n如果你愿意，我可以请老师跟你聊聊孩子日常的表现，或者帮你整理一份带去医院看的情况记录。',
+            src:'AI 禁用话术 · 医疗边界 v2.1（强制）', at:'02:20' },
+    more:[
+      { t:'如果你需要，我把孩子近两周的表现按时间整理成一页，你带去门诊会方便一些。', src:'AI 禁用话术 · 医疗边界 v2.1 补充', at:'02:21' },
+      { t:'这件事我请老师直接跟你联系，她比我更清楚该怎么配合。', src:'转人工话术 · 医疗类', at:'02:22' }
+    ],
+    kb:[{n:'AI 禁用话术 · 医疗边界 v2.1', s:'AI 不得判断任何疾病、不得建议用药、不得评价「是不是多动症 / 抑郁 / 自闭」。固定回复：只有医生能定 + 可协助整理情况记录 + 转人工。'},
+        {n:'转人工话术 · 医疗类', s:'医疗类问题一律当日转教研或组长，禁止交由顾问继续推销课程。'}]
+  }
+];
+
+let DATA = [];
+let cur = null;         // 当前选中 id
+let filter = 'all';
+let todayFollow = [];   // 今日跟进
+let takeovers = 0;      // 已接手计数
+let timer = null;
+
+/* ============ 工具 ============ */
+const $ = s => document.querySelector(s);
+const riskTxt = r => r===3 ? '风险 3 级' : r===2 ? '风险 2 级' : '风险 1 级';
+const riskCls = r => r===3 ? 't3' : r===2 ? 't2' : 't1';
+const heatTxt = h => h===3 ? '热度 高' : h===2 ? '热度 中' : '热度 低';
+const btnCls  = r => r===3 ? 'dan' : (r===2 ? '' : 'pri');
+
+function toast(msg, warn){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast on' + (warn ? ' warn' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.className='toast'; }, 2100);
+}
+
+function resetAll(){
+  DATA = SEED.map(d => Object.assign({}, d, {
+    status:'pending', aiRounds:0, aiLog: d.first ? [Object.assign({}, d.first)] : [],
+    assigned:null, record:'', startedAt:null, timeout:false, draft:''
+  }));
+  cur = null; filter='all'; todayFollow=[]; takeovers=0;
+  if(timer){clearInterval(timer); timer=null;}
+  buildFilter();
+  renderAll();
+  $('#main').innerHTML = '<div class="empty"><b>从左侧队列选一条私信</b><div>夜间私信自动流入，不需要任何人录单</div></div>';
+  $('#cWho').textContent = '未选择消息';
+  $('#cMeta').textContent = '';
+  $('#result').innerHTML = '<div class="empty"><b>处置结果会出现在这里</b><div>五个字段：风险级别 / 是否已停 / 谁接手 / 建议动作 / 下一步</div></div>';
+  $('#rHead').textContent = '待处理';
+  toast('已重置为初始演示状态');
+}
+
+/* ============ 渲染队列 ============ */
+function renderAll(){
+  renderQueue();
+  const pend = DATA.filter(d=>d.status==='pending');
+  $('#sTodo').textContent = pend.length;
+  $('#sHigh').textContent = pend.filter(d=>d.risk===3).length;
+  $('#sFollow').textContent = todayFollow.length;
+  $('#qcount').textContent = pend.length + ' 条待处理';
+}
+
+function renderQueue(){
+  const box = $('#queue');
+  let list = DATA.filter(d => d.status==='pending');
+  if(filter!=='all'){
+    if(filter==='high') list = list.filter(d=>d.risk===3);
+    else if(filter==='hot') list = list.filter(d=>d.heat===3);
+    else list = list.filter(d=>d.plat===filter);
+  }
+  list.sort((a,b)=> b.risk-a.risk || b.heat-a.heat || a.time.localeCompare(b.time));
+
+  // 已处置的排在后面淡显
+  const done = DATA.filter(d=>d.status!=='pending');
+
+  let h = '';
+  const curItem = cur ? DATA.find(x=>x.id===cur) : null;
+  if(curItem && curItem.status!=='pending'){
+    const lab = curItem.status==='follow' ? '已进今日跟进' : curItem.status==='arch' ? '已归档' : '处置中';
+    h += `<div class="card ${curItem.risk===3?'hi':curItem.risk===2?'mid':''} on" style="border-style:dashed">
+      <div class="r1"><span>${curItem.who}</span><span class="badge ${curItem.status==='follow'?'g':'o'}">${lab}</span></div>
+      <div class="r2">${curItem.text}</div>
+      <div class="r3"><span class="tg ${riskCls(curItem.risk)}">${riskTxt(curItem.risk)}</span>
+        <span class="tg t4">${curItem.intent}</span></div>
+    </div>`;
+  }
+  if(!list.length){
+    h += '<div style="padding:22px 8px;text-align:center;color:#A6ADB1;font-size:12px">这个筛选下没有待处理消息</div>';
+  }
+  list.forEach(d=>{
+    const cls = d.risk===3?'hi':d.risk===2?'mid':'';
+    h += `<div class="card ${cls} ${cur===d.id?'on':''}" onclick="pick('${d.id}')">
+      <div class="r1"><span>${d.who}</span><span class="tm">${d.time} · ${d.plat}</span></div>
+      <div class="r2">${d.text}</div>
+      <div class="r3">
+        <span class="tg ${riskCls(d.risk)}">${riskTxt(d.risk)}</span>
+        <span class="tg t4">${heatTxt(d.heat)}</span>
+        <span class="tg t4">${d.intent}</span>
+      </div>
+    </div>`;
+  });
+  if(done.length){
+    const others = done.filter(d=>d.id!==cur);
+    if(others.length){
+      h += '<div style="font-size:10px;letter-spacing:1px;color:#A6ADB1;margin:10px 0 6px 3px">已处置 · ' + others.length + ' 条</div>';
+      others.forEach(d=>{
+        const lab = d.status==='follow' ? '已进今日跟进' : d.status==='arch' ? '已归档' : '人工接管中';
+        h += `<div class="card done" onclick="showDone('${d.id}')">
+          <div class="r1"><span>${d.who}</span><span class="badge ${d.status==='follow'?'g':'o'}">${lab}</span></div>
+          <div class="r2">${d.text}</div>
+        </div>`;
+      });
+    }
+  }
+  box.innerHTML = h;
+}
+
+function setFilter(f, el){
+  filter = f;
+  document.querySelectorAll('.f').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  renderQueue();
+}
+
+function buildFilter(){
+  const opts = [['all','全部'],['high','只看高危'],['hot','只看高热度'],
+                ['微信','微信'],['小红书','小红书'],['抖音','抖音']];
+  $('#filt').innerHTML = opts.map(([k,v],i)=>
+    `<button class="f ${i===0?'on':''}" onclick="setFilter('${k}',this)">${v}</button>`).join('');
+}
+
+/* ============ 选中一条 ============ */
+function showDone(id){
+  cur = id;
+  const d = DATA.find(x=>x.id===id);
+  if(!d) return;
+  renderQueue();
+  $('#cWho').innerHTML = d.who + '<span>' + d.plat + ' · ' + d.time + ' · ' + d.id + '</span>';
+  $('#cMeta').textContent = d.status==='arch' ? '已归档' : d.status==='follow' ? '已加入今日跟进' : '人工接管中';
+  renderMain(d);
+  renderResult(d);
+}
+
+function pick(id){
+  cur = id;
+  const d = DATA.find(x=>x.id===id);
+  if(!d || d.status!=='pending'){ showDone(id); return; }
+  renderQueue();
+  $('#cWho').innerHTML = d.who + '<span>' + d.plat + ' · ' + d.time + ' · ' + d.id + '</span>';
+  $('#cMeta').textContent = 'AI 已 3 秒首响';
+  renderMain(d);
+  renderResult(d);
+}
+
+function renderMain(d){
+  const taken = d.status==='human' || d.status==='follow' || d.status==='arch';
+  let h = '';
+
+  h += `<div class="tagrow">
+          <span style="font-size:10.5px;letter-spacing:1px;color:#A6ADB1;margin-right:2px">AI 初判</span>
+          <span class="tg ${riskCls(d.risk)}">${riskTxt(d.risk)}</span>
+          <span class="tg ${d.heat===3?'t2':'t4'}">${heatTxt(d.heat)}</span>
+          <span class="tg t4">意图 · ${d.intent}</span>
+        </div>
+        <div class="basis"><b>判断依据</b>　${d.basis}</div>`;
+
+  // 会话记录：家长在左，AI 在右（企微里我们这边是绿的）
+  h += '<div class="conv"><div class="clb"><span>会话记录</span><span class="cn">' +
+       (d.aiLog.length + 1) + ' 条</span></div>';
+
+  h += `<div class="msg in">
+     <div class="mh">${d.who}<span>${d.time} · ${d.plat}</span></div>
+     <div class="mb">${d.text}</div></div>`;
+
+  d.aiLog.forEach((m,i)=>{
+    const n = i===0 ? '3 秒首响' : ('第 ' + i + ' 轮');
+    h += `<div class="msg out">
+      <div class="mh"><b>AI 自动回复</b><span>${n} · ${m.at||''}</span></div>
+      <div class="mb">${m.t}</div>
+      <div class="msrc" onclick="toggleKb(this)">依据：${m.src}　<span class="ar">查看切片 ▾</span>
+        <div class="knest">${m.src}</div></div>
+    </div>`;
+  });
+
+  if(d.aiRounds>=2) h += `<div class="sysline">已达 2 轮上限 · 系统已禁止 AI 继续应答，必须转人工</div>`;
+  if(d.status==='human') h += `<div class="sysline red">已停止自动应答 · 由${d.assigned}接手</div>`;
+  if(d.status==='follow') h += `<div class="sysline grn">邀约已发出 · 已加入今日跟进</div>`;
+  if(d.status==='arch') h += `<div class="sysline gry">已归档 · 全程留痕</div>`;
+  h += '</div>';
+
+  // 知识库切片（默认收起）
+  h += `<div class="kbtog" onclick="toggleKbAll(this)">知识库依据 · ${d.kb.length} 条切片　<span class="ar">展开 ▾</span>
+    <div class="kball">` +
+    d.kb.map(k=>`<div class="kbi"><div class="kbn">${k.n}</div><div class="kbs">${k.s}</div></div>`).join('') +
+    `</div></div>`;
+
+  if(!taken){
+    h += `<div class="btnrow" style="margin-top:11px">
+      <button class="btn dan" onclick="takeover()">接管（人接）</button>
+      <button class="btn" onclick="aiMore()" ${(d.aiRounds>=2||d.risk===3)?'disabled':''}>AI 继续答${d.risk===3?'（已停应答）':(d.aiRounds>=2?'（已 2 轮）':'')}</button>
+      <button class="btn pri" onclick="genDraft()">生成邀约</button>
+    </div>`;
+    h += `<div class="hint">v1 只有这三个动作。按钮多于三个，一线就开始乱点，出事也查不出点了哪个。</div>`;
+  }else{
+    if(d.status==='arch'){
+      h += `<div class="rec"><div class="lb"><span>处置记录 · 已归档留痕</span><em>只读</em></div>
+        <div style="border:1px solid #E9ECE8;background:#FAFAF7;border-radius:4px;padding:9px 11px;font-size:12.5px;line-height:1.6;color:#4A5459">${d.record||'（未填）'}</div>
+        <div class="hint">归档后不可改：改动要另起一条处置记录。</div></div>`;
+    }else{
+      h += `<div class="rec">
+      <div class="lb"><span>处置记录 · 必填才能归档</span><em>${d.record.length?'已填 '+d.record.length+' 字':'未填'}</em></div>
+      <textarea rows="3" id="recBox" placeholder="例：已电话回访，家长确认孩子在家、情绪稳定，约定周三到店，未推课"
+        oninput="onRecord(this.value)">${d.record}</textarea>
+      <div class="hint">不填不算处理完——这是留痕，不是备注。</div>
+    </div>`;
+    }
+  }
+  $('#main').innerHTML = h;
+  $('#main').scrollTop = 0;
+}
+
+function toggleKb(el){
+  el.classList.toggle('open');
+  const ar = el.querySelector('.ar');
+  ar.textContent = el.classList.contains('open') ? '收起 ▴' : '查看切片 ▾';
+}
+function toggleKbAll(el){
+  el.classList.toggle('open');
+  const ar = el.querySelector(':scope > .ar');
+  if(ar) ar.textContent = el.classList.contains('open') ? '收起 ▴' : '展开 ▾';
+}
+
+/* ============ 三个动作 ============ */
+function takeover(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  d.status='human'; d.assigned = d.risk===3 ? '组长 小彤' : '客服 小林';
+  d.startedAt = Date.now(); d.timeout=false;
+  takeovers++;
+  renderAll(); renderMain(d); renderResult(d);
+  toast('已停止自动应答，' + d.assigned + ' 接手 · 5 分钟倒计时开始');
+  startTimer();
+}
+
+async function aiMore(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  if(d.risk===3){ toast('风险 3 级：已停自动应答，AI 不许再答', true); return; }
+  if(d.aiRounds>=2){ toast('已到 2 轮上限，必须转人', true); return; }
+
+  // 如果有预设回复，使用预设（兼容旧数据）
+  const next = d.more[d.aiRounds];
+  if(next){
+    d.aiRounds++;
+    d.aiLog.push(Object.assign({}, next));
+    renderAll(); renderMain(d); renderResult(d, true);
+    if(d.aiRounds===2){
+      toast('已到 2 轮上限 —— 下一句必须转人，不能无限陪聊', true);
+    }else{
+      toast('AI 已回复（第 ' + d.aiRounds + ' / 2 轮）');
+    }
+    return;
+  }
+
+  // 否则调用真实 API
+  toast('AI 正在生成回复...');
+  try {
+    // 构建对话历史
+    const history = [];
+    history.push({ role: 'user', content: d.text });
+    d.aiLog.forEach((log, i) => {
+      history.push({ role: 'assistant', content: log.t });
+    });
+
+    // 模拟用户追问（这里简化处理，实际应该让用户输入）
+    const followUp = '（用户追问，等待回复）';
+
+    const response = await fetch(`${API_BASE}/api/continue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: followUp,
+        history: history,
+        intent: d.intent,
+        kb_items: d.kb
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('API 调用失败');
+    }
+
+    const result = await response.json();
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' +
+                    now.getMinutes().toString().padStart(2, '0');
+
+    d.aiRounds++;
+    d.aiLog.push({
+      t: result.response,
+      src: result.kb_source,
+      at: timeStr
+    });
+
+    renderAll(); renderMain(d); renderResult(d, true);
+
+    if(d.aiRounds===2){
+      toast('已到 2 轮上限 —— 下一句必须转人，不能无限陪聊', true);
+    }else{
+      toast('AI 已回复（第 ' + d.aiRounds + ' / 2 轮）');
+    }
+
+  } catch (error) {
+    toast('AI 回复失败：' + error.message + '（请确认后端服务已启动）', true);
+    console.error(error);
+  }
+}
+
+
+function genDraft(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  const map = {
+    '求方案':'李女士你好，我是启航的顾问。看到你昨晚的消息，今天上午想先跟你通个电话，先了解孩子现在的情况，不谈课程。方便的话你回个时间，我按你的时间来。',
+    '问价格':'王先生你好，初二一对一标准价 3,980 / 期，周末有试听。我给你留了周六上午 10 点的位置，你看合适吗？',
+    '抱怨/退费':'你的情况我记下了，组长今天会亲自跟你核实，具体怎么处理以组长答复为准。',
+    '问课程':'张女士你好，五年级专注力课每周六上午，小班 6 人，可以先带孩子来试听一节课。',
+    '随口问':'我们在杭州有 3 个校区，最近的是滨江校区，地址我发你。',
+    '医疗越界':'这个问题需要专业医生判断，我们不能给结论。我已经请老师直接联系你。'
+  };
+  d.draft = map[d.intent] || '（草稿）';
+  renderResult(d, true);
+  toast('已生成话术草稿 —— 顾问可改可拒，发出前必须自己读一遍');
+}
+
+function sendDraft(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  if(d.risk===3 && d.status==='pending'){
+    toast('风险 3 级必须先接管，不允许直接发邀约', true);
+    return;
+  }
+  const box = document.getElementById('draftBox');
+  if(box) d.draft = box.value;
+  d.status='follow'; d.assigned = d.assigned || '顾问 小周';
+  todayFollow.push(d.id);
+  renderAll(); renderMain(d); renderResult(d);
+  toast('邀约已发出 · 已加入今日跟进（' + todayFollow.length + ' 条）');
+}
+
+function archiveIt(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  if((d.record||'').trim().length < 4){ toast('处置记录没填，不能归档', true); return; }
+  d.status='arch';
+  renderAll(); renderMain(d); renderResult(d);
+  toast('已归档 · 全程留痕可回溯');
+}
+
+function onRecord(v){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  d.record = v;
+  const lb = document.querySelector('.rec .lb em');
+  if(lb) lb.textContent = v.length ? ('已填 ' + v.length + ' 字') : '未填';
+  const b = document.getElementById('archBtn');
+  if(b) b.disabled = v.trim().length < 4;
+}
+
+/* ============ 结果区 ============ */
+function renderResult(d, keepScroll){
+  const R = $('#result');
+  $('#rHead').textContent = d.status==='pending' ? '待处理' : d.status==='human' ? '人工接管中' : d.status==='follow' ? '已发出' : '已归档';
+  let h = '<div class="res">';
+
+  if(d.status==='pending'){
+    const stopped = d.risk===3;
+    h += `<div class="banner ${stopped?'red':'gry'}">${stopped
+        ? '风险 3 级 · AI 已首响并立即停应答'
+        : 'AI 已自动首响，等待处置'}<br><span style="font-size:11.5px">${stopped
+        ? '已转人工，' + (d.timeout?'超时兜底已触发':'等待组长接手')
+        : (d.aiRounds>=2 ? '已对话 2 轮 · 已达上限，必须转人' : (d.aiRounds?'已对话 '+d.aiRounds+' 轮 · 可继续也可转人':'尚未转人'))}</span></div>`;
+    h += field('风险级别', `<span class="tg ${riskCls(d.risk)}">${riskTxt(d.risk)}</span>`);
+    h += field('是否已停自动应答', stopped
+        ? '<b style="color:#A5351F">是 · 危机命中即停，AI 不再应答</b>'
+        : (d.aiRounds>=2 ? '<b style="color:#A5351F">已达 2 轮上限，下一句必须转人</b>' : '否 · AI 仍在应答'));
+    h += field('AI 已发内容', `已首响 1 条${d.aiRounds?' + 追加 '+d.aiRounds+' 条':''}，共 ${d.aiLog.length} 条 · 每条带出处`);
+    h += field('谁接手', '—', true);
+    h += field('建议动作', d.advice);
+    h += `<button class="btn pri wide" onclick="takeover()">接管并处置</button>`;
+    if(d.draft){
+      h += `<div class="field"><div class="k">话术草稿 · 顾问可改可拒</div>
+        <textarea rows="4" id="draftBox">${d.draft}</textarea>
+        <div class="btnrow" style="margin:8px 0 0">
+          <button class="btn" onclick="genDraft()">重新生成</button>
+          <button class="btn pri" onclick="sendDraft()">发出并加入今日跟进</button>
+        </div></div>`;
+    }
+    h += `<div class="small">接管后这一栏会变成：红横幅 → 倒计时 → 五个字段 → 下一步按钮。</div>`;
+  }
+
+  if(d.status==='human'){
+    h += `<div class="banner red">${riskTxt(d.risk)} · 已停自动应答 · ${d.assigned} 接手</div>`;
+
+    // 倒计时
+    const left = Math.max(0, 300 - Math.floor((Date.now()-(d.startedAt||Date.now()))/1000));
+    h += `<div class="field"><div class="k">兜底倒计时 · 5 分钟无人处置则自动升级</div>
+          <div class="cdrow"><div class="cd ${left<=60?'hot':''}" id="cdTxt">${fmt(left)}</div>
+          <button class="btn wide" style="padding:6px 10px;font-size:11.5px" onclick="forceTimeout()">模拟超时</button></div>
+          <div class="small">超时 → @组长 → 电话呼叫校长 → 全程留痕</div></div>`;
+    if(d.timeout){
+      h += `<div class="banner red" style="font-size:11.5px">已触发超时兜底：@组长 → 电话呼叫校长</div>`;
+    }
+
+    h += field('建议动作', d.advice);
+    h += `<div class="field"><div class="k">话术草稿 · 顾问可改可拒</div>
+      <textarea rows="4" id="draftBox">${d.draft || ''}</textarea>
+      <div class="btnrow" style="margin:8px 0 0">
+        <button class="btn" onclick="genDraft()">重新生成</button>
+        <button class="btn pri" onclick="sendDraft()">发出并加入今日跟进</button>
+      </div></div>`;
+    h += `<div class="field"><div class="k">下一步</div>
+      <div class="btnrow" style="margin:2px 0 0">
+        <button class="btn" onclick="archiveIt()" id="archBtn" ${((d.record||'').trim().length<4)?'disabled':''}>归档</button>
+      </div>
+      <div class="small" style="margin-top:6px">归档前必须先填处置记录</div></div>`;
+  }
+
+  if(d.status==='follow'){
+    h += `<div class="banner grn">邀约已发出 · 已加入今日跟进</div>`;
+    h += field('风险级别', `<span class="tg ${riskCls(d.risk)}">${riskTxt(d.risk)}</span>`);
+    h += field('谁接手', d.assigned || '顾问');
+    h += field('处置记录', d.record || '（未填）', !d.record);
+    h += `<div class="field"><div class="k">下一步</div>
+      <div class="btnrow" style="margin:2px 0 0"><button class="btn" onclick="archiveIt()" id="archBtn"
+        ${((d.record||'').trim().length<4)?'disabled':''}>归档</button></div></div>`;
+  }
+
+  if(d.status==='arch'){
+    h += `<div class="banner grn">已归档 · 全程留痕</div>`;
+    h += field('风险级别', `<span class="tg ${riskCls(d.risk)}">${riskTxt(d.risk)}</span>`);
+    h += field('谁接手', d.assigned || '—');
+    h += field('处置记录', d.record || '（未填）');
+    h += `<div class="kpirow">
+      <div class="kpi"><div class="kk">本轮接手</div><div class="vv">${takeovers}<small> 条</small></div></div>
+      <div class="kpi"><div class="kk">今日跟进</div><div class="vv">${todayFollow.length}<small> 条</small></div></div>
+    </div>`;
+  }
+
+  h += '</div>';
+  R.innerHTML = h;
+  if(!keepScroll) R.scrollTop = 0;
+}
+
+function field(k, v, dim){
+  return `<div class="field ${dim?'dim':''}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+}
+function fmt(s){ const m = String(Math.floor(s/60)).padStart(2,'0'); const x = String(s%60).padStart(2,'0'); return m+':'+x; }
+
+function forceTimeout(){
+  const d = DATA.find(x=>x.id===cur); if(!d) return;
+  d.startedAt = Date.now() - 300*1000; d.timeout = true;
+  renderResult(d, true);
+  toast('超时兜底已触发：@组长 → 电话呼叫校长', true);
+}
+
+function startTimer(){
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=>{
+    const d = DATA.find(x=>x.id===cur);
+    if(!d || d.status!=='human'){ clearInterval(timer); timer=null; return; }
+    const el = document.getElementById('cdTxt');
+    if(!el){ clearInterval(timer); timer=null; return; }
+    const left = Math.max(0, 300 - Math.floor((Date.now()-d.startedAt)/1000));
+    el.textContent = fmt(left);
+    el.className = 'cd' + (left<=60?' hot':'');
+    if(left===0 && !d.timeout){ d.timeout=true; toast('5 分钟到，已自动升级到组长与校长', true); renderResult(d, true); }
+  }, 1000);
+}
+
+/* ============ 启动 ============ */
+buildFilter();
+resetAll();
+
+/* ============ 监听模拟器消息 ============ */
+// 从 localStorage 读取模拟器发送的消息
+function loadSimulatorMessages() {
+  try {
+    const messages = JSON.parse(localStorage.getItem('qihang_simulator_messages') || '[]');
+    if (messages.length > 0) {
+      // 合并到 DATA
+      messages.forEach(msg => {
+        // 检查是否已存在
+        if (!DATA.find(d => d.id === msg.id)) {
+          DATA.unshift(msg);  // 新消息放最前面
+        }
+      });
+      // 清空 localStorage
+      localStorage.removeItem('qihang_simulator_messages');
+      renderAll();
+      toast('已加载 ' + messages.length + ' 条新消息');
+    }
+  } catch (e) {
+    console.error('加载模拟器消息失败:', e);
+  }
+}
+
+// 监听 postMessage（如果模拟器和原型在不同窗口）
+window.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'NEW_MESSAGE') {
+    const msg = event.data.message;
+    if (!DATA.find(d => d.id === msg.id)) {
+      DATA.unshift(msg);
+      renderAll();
+      toast('收到新消息：' + msg.who);
+      // 自动选中新消息
+      setTimeout(() => pick(msg.id), 300);
+    }
+  }
+});
+
+// 页面加载时检查一次
+loadSimulatorMessages();
+
+// 每 2 秒检查一次（如果模拟器在另一个标签页）
+setInterval(loadSimulatorMessages, 2000);
+
+/* 截图/演示用：
+   #showcase       → 选中「问价格」单，跑满 2 轮，展开知识库切片（展示 AI 回答内容）
+   #showcase-risk  → 选中高危单并接管（展示危机首响 + 停应答）*/
+if(location.hash === '#showcase'){
+  setTimeout(()=>{
+    const t = DATA.find(d=>d.id==='M-2468');
+    if(t){
+      pick(t.id);
+      aiMore(); aiMore();
+      cur = t.id; renderMain(t);
+      const kb = document.querySelector('#main .kbtog'); if(kb) toggleKbAll(kb);
+      document.querySelector('#main').scrollTop = 0;
+    }
+  }, 60);
+}
+if(location.hash === '#showcase-risk'){
+  setTimeout(()=>{
+    const first = DATA.filter(d=>d.risk===3)[0];
+    if(first){ pick(first.id); takeover(); }
+  }, 60);
+}
+</script>
+</body>
+</html>

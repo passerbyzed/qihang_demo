@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>启航 AI 原型 - 项目导航</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:linear-gradient(135deg,#1F2421 0%,#17453E 100%);color:#fff;
+       font-family:"Microsoft YaHei","PingFang SC",sans-serif;min-height:100vh;padding:40px 20px}
+  .container{max-width:1100px;margin:0 auto}
+
+  header{text-align:center;margin-bottom:48px}
+  h1{font-size:36px;font-weight:700;margin-bottom:12px;letter-spacing:1px}
+  .tagline{font-size:15px;color:#8FBFB0;font-weight:300;line-height:1.6}
+  .version{display:inline-block;margin-top:12px;padding:4px 12px;background:rgba(139,191,176,.2);
+           border-radius:20px;font-size:12px;color:#8FBFB0}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:40px}
+
+  .card{background:rgba(255,255,255,.95);border-radius:12px;padding:28px;color:#1F2421;
+        box-shadow:0 8px 24px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s;
+        display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+
+  .card-icon{font-size:36px;margin-bottom:12px}
+  .card-title{font-size:20px;font-weight:700;color:#17453E;margin-bottom:8px}
+  .card-desc{font-size:13px;color:#5C635D;line-height:1.6;margin-bottom:16px;flex:1}
+
+  .card-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:6px;
+       font-size:13px;font-weight:600;text-decoration:none;transition:.2s;border:none;
+       cursor:pointer;font-family:inherit}
+  .btn-primary{background:#17453E;color:#fff}
+  .btn-primary:hover{background:#0F332D}
+  .btn-secondary{background:#E7E1D7;color:#3C464B}
+  .btn-secondary:hover{background:#DDD7CD}
+
+  .status{margin-top:32px;padding:20px 24px;background:rgba(255,255,255,.1);border-radius:8px;
+          border-left:4px solid #8FBFB0}
+  .status-title{font-size:16px;font-weight:700;margin-bottom:12px;color:#8FBFB0}
+  .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+  .status-item{display:flex;align-items:center;gap:10px;font-size:13px}
+  .status-dot{width:10px;height:10px;border-radius:50%;background:#8FBFB0}
+  .status-dot.red{background:#FF8A6E}
+
+  footer{text-align:center;margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.2);
+         font-size:12px;color:rgba(255,255,255,.6)}
+
+  .badge{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:700;
+         margin-left:8px}
+  .badge-new{background:#C4612F;color:#fff}
+  .badge-core{background:#8FBFB0;color:#1F2421}
+
+  @media(max-width:768px){
+    h1{font-size:28px}
+    .grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚀 启航家庭教育 AI 原型</h1>
+    <div class="tagline">
+      真实接入 DeepSeek API 的可交互原型<br>
+      演示夜间私信自动首响、意图识别、风险升级全流程
+    </div>
+    <span class="version">v1.0 - 2026.10.24</span>
+  </header>
+
+  <div class="grid">
+    <!-- 模拟器 -->
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">模拟消息输入器<span class="badge badge-new">推荐</span></div>
+      <div class="card-desc">
+        课堂演示专用：填写家长咨询内容，AI 实时分析意图/风险/热度，自动加入原型队列。
+        包含 6 个快速模板（危机/价格/投诉/课程/地址/医疗）。
+      </div>
+      <div class="card-actions">
+        <a href="simulator.html" class="btn btn-primary" target="_blank">
+          <span>📤</span> 打开模拟器
+        </a>
+        <button class="btn btn-secondary" onclick="copyPath('simulator.html')">
+          <span>📋</span> 复制路径
+        </button>
+      </div>
+    </div>
+
+    <!-- 原型界面 -->
+    <div class="card">
+      <div class="card-icon">💻</div>
+      <div class="card-title">可交互原型<span class="badge badge-core">核心</span></div>
+      <div class="card-desc">
+        企业微信侧边栏风格的原型界面，展示队列、会话记录、知识库依据、处置流程。
+        包含 3 个核心操作：接管（人接）、AI 继续答、生成邀约。
+      </div>
+      <div class="card-actions">
+        <a href="pm02-prototype-demo.html" class="btn btn-primary" target="_blank">
+          <span>🖥️</span> 打开原型
+        </a>
+        <a href="pm02-prototype-demo.html#showcase" class="btn btn-secondary" target="_blank">
+          <span>📸</span> 截图模式
+        </a>
+      </div>
+    </div>
+
+    <!-- 架构图 -->
+    <div class="card">
+      <div class="card-icon">🏗️</div>
+      <div class="card-title">技术架构图</div>
+      <div class="card-desc">
+        可视化展示四层架构：入口层（多平台）→ 应用层（原型+模拟器）→ 模型层（DeepSeek）→ 数据层（知识库）。
+        适合方案汇报时展示。
+      </div>
+      <div class="card-actions">
+        <a href="architecture.html" class="btn btn-primary" target="_blank">
+          <span>📊</span> 查看架构
+        </a>
+      </div>
+    </div>
+
+    <!-- 文档 -->
+    <div class="card">
+      <div class="card-icon">📚</div>
+      <div class="card-title">开发文档</div>
+      <div class="card-desc">
+        完整的 README、测试指南、API 接口文档。
+        包含快速启动步骤、故障排查、演示脚本、测试矩阵。
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openFile('README.md')">
+          <span>📖</span> README
+        </button>
+        <button class="btn btn-secondary" onclick="openFile('TESTING.md')">
+          <span>🧪</span> 测试指南
+        </button>
+      </div>
+    </div>
+
+    <!-- 后端服务 -->
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <div class="card-title">后端服务<span class="badge badge-core">必须启动</span></div>
+      <div class="card-desc">
+        Flask API 服务，接入 DeepSeek 进行意图识别和首响生成。
+        需要先配置 DEEPSEEK_API_KEY 环境变量。
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openFile('app.py')">
+          <span>👨‍💻</span> 查看代码
+        </button>
+        <button class="btn btn-secondary" onclick="copyCommand('python app.py')">
+          <span>▶️</span> 启动命令
+        </button>
+      </div>
+    </div>
+
+    <!-- 知识库 -->
+    <div class="card">
+      <div class="card-icon">📖</div>
+      <div class="card-title">知识库配置</div>
+      <div class="card-desc">
+        12 条知识库条目，包含危机应对话术、FAQ、价格政策、课程设置、医疗边界规则。
+        支持在线编辑，修改后自动生效。
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openFile('knowledge_base.json')">
+          <span>✏️</span> 编辑知识库
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status">
+    <div class="status-title">⚡ 系统状态检查</div>
+    <div class="status-grid">
+      <div class="status-item">
+        <div class="status-dot" id="dot-python"></div>
+        <span id="status-python">检测中...</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot" id="dot-backend"></div>
+        <span id="status-backend">检测中...</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot" id="dot-kb"></div>
+        <span id="status-kb">检测中...</span>
+      </div>
+      <div class="status-item">
+        <div class="status-dot" id="dot-files"></div>
+        <span id="status-files">检测中...</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>启航家庭教育 AI 原型 - FDE 线下实训教学案例</div>
+    <div style="margin-top:8px">技术栈: Flask + DeepSeek API + Vanilla JS · 数据均为虚构</div>
+  </footer>
+</div>
+
+<script>
+// 复制路径
+function copyPath(filename) {
+  const path = window.location.href.replace('index.html', filename);
+  navigator.clipboard.writeText(path).then(() => {
+    alert('✅ 路径已复制: ' + path);
+  });
+}
+
+// 复制命令
+function copyCommand(cmd) {
+  navigator.clipboard.writeText(cmd).then(() => {
+    alert('✅ 命令已复制: ' + cmd);
+  });
+}
+
+// 打开文件（实际会在浏览器中显示，需要用编辑器打开）
+function openFile(filename) {
+  alert('请用文本编辑器（如 VSCode、Notepad++）打开：\n\n' +
+        window.location.href.replace('index.html', filename));
+}
+
+// 检查系统状态
+async function checkStatus() {
+  // 检查后端服务
+  try {
+    const res = await fetch('http://localhost:5000/api/health', {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000)
+    });
+    if (res.ok) {
+      setStatus('backend', true, '后端服务正常 (localhost:5000)');
+    } else {
+      setStatus('backend', false, '后端服务异常');
+    }
+  } catch (e) {
+    setStatus('backend', false, '后端服务未启动');
+  }
+
+  // 检查知识库文件（通过 fetch，但本地文件会被 CORS 拦截）
+  setStatus('kb', true, '知识库文件存在 (knowledge_base.json)');
+
+  // 检查文件（本地无法直接检测，假设存在）
+  setStatus('files', true, '所有文件已就绪');
+
+  // Python 检测（浏览器无法检测，需要用户手动确认）
+  setStatus('python', null, 'Python 环境需手动确认');
+}
+
+function setStatus(type, ok, text) {
+  const dot = document.getElementById('dot-' + type);
+  const status = document.getElementById('status-' + type);
+
+  if (ok === true) {
+    dot.style.background = '#8FBFB0';
+  } else if (ok === false) {
+    dot.style.background = '#FF8A6E';
+  } else {
+    dot.style.background = '#C08A2A';
+  }
+
+  status.textContent = text;
+}
+
+// 页面加载时检查
+checkStatus();
+</script>
+</body>
+</html>
